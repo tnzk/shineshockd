@@ -6,6 +6,8 @@
 using namespace cv;
 using namespace std;
 
+
+
 int main( int argc, char** argv)
 {
   IplImage *src = 0, *tmpl = 0;
@@ -21,6 +23,7 @@ int main( int argc, char** argv)
   tmpl = cvLoadImage("template.bmp", CV_LOAD_IMAGE_COLOR);
 
   if(src == 0 || tmpl == 0){
+    cout << "no files" << endl;
     return -1;
   }
 
@@ -30,10 +33,8 @@ int main( int argc, char** argv)
     
   cvMatchTemplate(src, tmpl, ftmp, CV_TM_CCOEFF);
   cvMinMaxLoc(ftmp, &min_value, &max_value, &min_loc, &max_loc, NULL);
-  cvRectangle(src, max_loc, cvPoint(max_loc.x + tmpl->width, max_loc.y + tmpl->height), CV_RGB(0, 244, 255), 3);
+  //  cvRectangle(src, max_loc, cvPoint(max_loc.x + tmpl->width, max_loc.y + tmpl->height), CV_RGB(0, 244, 255), 3);
 
-  //  cvGetTextSize("*", &font, &text_size, 0);
-  //  cvPutText(src, "*", cvPoint (x, y + text_size.height), &font, CV_RGB(255 , 0 , 255));
   printf("%i\n", ftmp->widthStep);
   printf("%i, %i\n", max_loc.x, max_loc.y);
   printf("%f\n", max_value);
@@ -42,13 +43,19 @@ int main( int argc, char** argv)
       CvScalar s = cvGet2D(ftmp,y,x);
       int xx = x + 100 - 1;
       int yy = y + 100 - 1;
-      cvRectangle(src, cvPoint(xx,yy), cvPoint(xx + 1, yy + 1), CV_RGB(s.val[0],0,0), 1);
-      if(s.val[0] > 1100000000) printf( "%i, %i: %20.2f\n", x, y , s.val[0]);
+      //cvRectangle(src, cvPoint(xx,yy), cvPoint(xx + 1, yy + 1), CV_RGB(s.val[0],0,0), 1);
+      if(s.val[0] > 1170000000) {
+	printf( "%3i, %3i: %20.2f\n", x, y , s.val[0]);
+	cvRectangle(src, cvPoint(x,y), cvPoint(x + tmpl->width, y + tmpl->height), CV_RGB(0, 244, 255), 1);
+      }
     }
   }
 
-  cvSaveImage("result.jpg", src);
-  cvSaveImage("result_f.jpg", ftmp);
+  cvGetTextSize(text, &font, &text_size, 0);
+  cvPutText(src, text, max_loc, &font, CV_RGB(255 , 0 , 255));
+
+  cvSaveImage("result.png", src);
+  cvSaveImage("result_f.png", ftmp);
 
   return 0;
 }
