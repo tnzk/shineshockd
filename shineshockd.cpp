@@ -12,11 +12,11 @@ class Detection {
 public:
   int x;
   int y;
-  int sim;
-  Detection( int, int, int);
+  double sim;
+  Detection( int, int, double);
 };
 
-Detection::Detection( int x, int y, int sim)
+Detection::Detection( int x, int y, double sim)
 {
   this->x = x;
   this->y = y;
@@ -35,7 +35,7 @@ public:
 
   Document( string, string);
   bool Load();
-  int Match( int);
+  int Match( double);
   void Everything();
 };
 
@@ -59,15 +59,15 @@ bool Document::Load()
   return true;
 }
 
-int Document::Match( int threshould)
+int Document::Match( double threshould)
 {
-  cvMatchTemplate(src, tmpl, result, CV_TM_CCOEFF);
+  cvMatchTemplate(src, tmpl, result, CV_TM_CCOEFF_NORMED);
   for( int y = 0; y < result->height; y++) {
     for( int x = 0; x < result->width; x++) {
       CvScalar s = cvGet2D(result,y,x);
       int xx = x + tmpl->width - 1;
       int yy = y + tmpl->height - 1;
-      if(s.val[0] > threshould)
+      if(s.val[0] >= threshould)
 	detections.push_back( Detection( x, y, s.val[0]));
     }
   }
@@ -78,16 +78,21 @@ void Document::Everything()
 {
   vector<Detection>::iterator it = detections.begin();
   while( it != detections.end()) {
-    printf(" %3i, %3i: %20i\n", it->x, it->y, it->sim);
+    printf(" %3i, %3i: %20.20f\n", it->x, it->y, it->sim);
     it++;
   }
 }
 
 int main( int argc, char** argv)
 {
+  if( argc < 2) {
+    cout << "Usage: " << argv[0] << " threshould" << endl;
+    return -1;
+  }
+
   Document doc( "image.bmp", "template.bmp");
   puts( doc.Load() ? "Successfully loaded." : "Load failed.");
-  printf( "%i markers detected.\n", doc.Match( 1170000000));
+  printf( "%i markers detected.\n", doc.Match(0.99));
   doc.Everything();
 
   //cvSaveImage("result.png", src);
