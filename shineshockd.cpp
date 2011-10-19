@@ -79,8 +79,12 @@ void Document::Everything()
   vector<Detection>::iterator it = detections.begin();
   while( it != detections.end()) {
     printf(" %3i, %3i: %20.20f\n", it->x, it->y, it->sim);
+    IplImage* img;
+    img = cvCloneImage( src);
+    cvRectangle( img, cvPoint( it->x, it->y), cvPoint( it->x + tmpl->width, it->y + tmpl->height), cvRGB( 255, 255, 128), 0, 0);    
     it++;
   }
+  cvSaveImage( "hoge.png", img);
 }
 
 int main( int argc, char** argv)
@@ -89,14 +93,13 @@ int main( int argc, char** argv)
     cout << "Usage: " << argv[0] << " threshould" << endl;
     return -1;
   }
-
+  
+  double threshould = atof( argv[1]);
+  
   Document doc( "image.bmp", "template.bmp");
   puts( doc.Load() ? "Successfully loaded." : "Load failed.");
-  printf( "%i markers detected.\n", doc.Match(0.99));
+  printf( "%i markers detected.\n", doc.Match( threshould));
   doc.Everything();
-
-  //cvSaveImage("result.png", src);
-  //cvSaveImage("result_f.png", ftmp);
 
   return 0;
 }
