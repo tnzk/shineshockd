@@ -76,12 +76,12 @@ int Document::Match( double threshould)
 
 void Document::Everything()
 {
+  IplImage* img;
   vector<Detection>::iterator it = detections.begin();
   while( it != detections.end()) {
     printf(" %3i, %3i: %20.20f\n", it->x, it->y, it->sim);
-    IplImage* img;
     img = cvCloneImage( src);
-    cvRectangle( img, cvPoint( it->x, it->y), cvPoint( it->x + tmpl->width, it->y + tmpl->height), cvRGB( 255, 255, 128), 0, 0);    
+    cvRectangle( img, cvPoint( it->x, it->y), cvPoint( it->x + tmpl->width, it->y + tmpl->height), CV_RGB( 255, 255, 128), 0, 0);    
     it++;
   }
   cvSaveImage( "hoge.png", img);
