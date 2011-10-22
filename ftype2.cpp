@@ -5,6 +5,8 @@
 #include <opencv/highgui.h>
 #include FT_FREETYPE_H
 
+#include "utf8decoder.h"
+
 using namespace std;
 using namespace cv;
 
@@ -15,7 +17,7 @@ int main( int argc, char** argv){
   FT_UInt glyph_index;
   FT_Error error;
 
-  char text[] = "Hello, world!";
+  char text[] = "a日b本語テスト彳";
   char filename[] = "test.bmp";
   int pen_x, pen_y, n;
   int num_chars = (int)strlen( text);
@@ -37,13 +39,16 @@ int main( int argc, char** argv){
   IplImage* img = cvLoadImage("image.bmp", CV_LOAD_IMAGE_COLOR);
   IplImage* dst = cvCloneImage(img);
 
+  Utf8Decoder u8d(text, num_chars);
+
   pen_x = 300;
   pen_y = 200;
-  for ( n = 0;n < num_chars; n++ ){
+  for ( n = 0;n < u8d.length(); n++ ){
     int i;
     FT_Bitmap bitmap;
+    long int unicode_index = u8d.get(n);
 
-    FT_Load_Char( face, text[n], FT_LOAD_RENDER);
+    FT_Load_Char( face, unicode_index, FT_LOAD_RENDER);
     bitmap = slot->bitmap;
 
     int offset_y = cpos_h - bitmap.rows + cpos_y;
