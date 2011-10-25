@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <stdio.h>
@@ -20,9 +21,14 @@ int main( int argc, char** argv)
   puts( doc.Load() ? "Successfully loaded." : "Load failed.");
   printf( "%i markers detected.\n", doc.Match( threshould));
 
-  doc.Say("AほげBぶが", 0);
-  doc.Say("AほげBぶが", 1);
-  doc.Say("AほげBぶが", 2);
+  int i = 1;
+  string s;
+  ifstream ifile("script.txt");
+  while( ifile && getline( ifile, s)) {
+    cout << i << ": " << s << endl;
+    doc.Say( (char*)s.c_str(), i - 1);
+    i++;
+  }
 
   doc.Everything();
 
