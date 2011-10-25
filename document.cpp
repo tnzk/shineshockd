@@ -56,8 +56,6 @@ bool Document::Say( char* s, int detection_id)
   
   int cpos_x = detection.x;
   int cpos_y = detection.y;
-  int cpos_w = 640;
-  int cpos_h = 50;
   unsigned char fcr = 0x00;
   unsigned char fcg = 0x54;
   unsigned char fcb = 0xff;
