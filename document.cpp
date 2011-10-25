@@ -17,7 +17,7 @@ Document::Document( string src_name, string tmpl_name)
   FT_Init_FreeType( &library );
   FT_New_Face( library, "mplus-1c-heavy.ttf", 0, &face );
   slot = face->glyph;
-  FT_Set_Char_Size( face, 0, 16 * 64, 300, 300);
+  FT_Set_Char_Size( face, 0, 5 * 64, 600, 600);
 }
 
 bool Document::Load()
@@ -54,8 +54,6 @@ bool Document::Say( char* s, int detection_id)
   IplImage* dst = this->said;
   Detection detection = detections[detection_id]; 
   
-  int pen_x = 300;
-  int pen_y = 200;
   int cpos_x = detection.x;
   int cpos_y = detection.y;
   int cpos_w = 640;
@@ -65,15 +63,14 @@ bool Document::Say( char* s, int detection_id)
   unsigned char fcb = 0xff;
 
   for ( int n = 0; n < u8d.length(); n++ ){
-    int i;
     FT_Bitmap bitmap;
     long int unicode_index = u8d.get(n);
 
     FT_Load_Char( face, unicode_index, FT_LOAD_RENDER);
     bitmap = slot->bitmap;
 
-    int offset_y = cpos_h - bitmap.rows + cpos_y;
-    for( i = 0; i < bitmap.rows * bitmap.width; i++){
+    int offset_y = cpos_y + ((64 - slot->metrics.horiBearingY) / 64) + 32;
+    for( int i = 0; i < bitmap.rows * bitmap.width; i++){
 
       int x = ( i % bitmap.width) + cpos_x;
       int y = offset_y + ( i / bitmap.width);
@@ -93,8 +90,7 @@ bool Document::Say( char* s, int detection_id)
       tmp = fcb * gph_a + *src_b * src_a;
       *src_b = (tmp > 255) ? 255 : tmp;
     }
-    cpos_x += bitmap.width + 5;
-    pen_x += slot->advance.x >> 6;
+    cpos_x += slot->metrics.horiAdvance / 64;
   }
   return true;
 }
