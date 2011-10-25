@@ -19,6 +19,11 @@ int main( int argc, char** argv)
   Document doc( "image.bmp", "template.bmp");
   puts( doc.Load() ? "Successfully loaded." : "Load failed.");
   printf( "%i markers detected.\n", doc.Match( threshould));
+
+  doc.Say("AほげBぶが", 0);
+  doc.Say("AほげBぶが", 1);
+  doc.Say("AほげBぶが", 2);
+
   doc.Everything();
 
   return 0;
