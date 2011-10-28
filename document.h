@@ -3,6 +3,8 @@
 #include <string>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_TRUETYPE_TABLES_H
+#include "ttgsubtable.hpp"
 #include "utf8decoder.h"
 
 using namespace std;
@@ -25,6 +27,7 @@ public:
   IplImage* result;
   CvFont font;
   vector<Detection> detections;
+  CTTGSUBTable gsubt;
 
   // To use FreeType
   FT_Library library;

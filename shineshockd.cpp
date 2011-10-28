@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <stdio.h>
+//#include <stdio.h>
 #include "document.h"
  
 using namespace cv;
@@ -16,7 +16,7 @@ int main( int argc, char** argv)
   }
   
   double threshould = atof( argv[1]);
-  
+
   Document doc( "image.bmp", "template.bmp");
   puts( doc.Load() ? "Successfully loaded." : "Load failed.");
   printf( "%i markers detected.\n", doc.Match( threshould));

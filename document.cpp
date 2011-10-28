@@ -14,20 +14,37 @@ Document::Document( string src_name, string tmpl_name)
   src = NULL;
   tmpl = NULL;
 
+  // Initialize FreeType2
+  printf("Initialize FreeType2...");
+  FT_Error error;
   FT_Init_FreeType( &library );
-  FT_New_Face( library, "mplus-1c-heavy.ttf", 0, &face );
+  FT_New_Face( library, "F910ComicW4.otf", 0, &face );
   slot = face->glyph;
-  FT_Set_Char_Size( face, 0, 5 * 64, 600, 600);
+  FT_Set_Char_Size( face, 0, 5 * 64, 300, 300);
+  printf("Done.\n");
+
+  // Pase GRUB table
+  printf("Parse GSUB table...");
+  unsigned long length = 0;
+  unsigned char* buf = (unsigned char*)malloc(2800000);
+  error = FT_Load_Sfnt_Table( face, FT_MAKE_TAG('G','S','U','B'), 0, buf, &length);
+  error = FT_Load_Sfnt_Table( face, FT_MAKE_TAG('G','S','U','B'), 0, buf, NULL);
+  gsubt.LoadGSUBTable((FT_Bytes)buf);
+  printf("Done.\n");
+
 }
 
 bool Document::Load()
 {
-  src = cvLoadImage("image.bmp", CV_LOAD_IMAGE_COLOR);
+
+  // Load the source image and template
+  // TODO: use any other file name
+  src  = cvLoadImage("image.bmp", CV_LOAD_IMAGE_COLOR);
   tmpl = cvLoadImage("template.bmp", CV_LOAD_IMAGE_COLOR);
   if(src == 0 || tmpl == 0) return false;
 
+  // Create target image and generate buffer for template matching
   said = cvCloneImage(src);
-  cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 4, 4);
   result = cvCreateImage( cvSize( src->width - tmpl->width + 1, src->height - tmpl->height + 1), 32, 1);
 
   return true;
@@ -39,8 +56,6 @@ int Document::Match( double threshould)
   for( int y = 0; y < result->height; y++) {
     for( int x = 0; x < result->width; x++) {
       CvScalar s = cvGet2D(result,y,x);
-      int xx = x + tmpl->width - 1;
-      int yy = y + tmpl->height - 1;
       if(s.val[0] >= threshould)
 	detections.push_back( Detection( x, y, s.val[0]));
     }
@@ -50,27 +65,35 @@ int Document::Match( double threshould)
 
 bool Document::Say( char* s, int detection_id)
 {
+  // Draw the string specified onto a marker detected
   Utf8Decoder u8d(s, (int)strlen(s));
   IplImage* dst = this->said;
   Detection detection = detections[detection_id]; 
   
-  int cpos_x = detection.x;
+  int cpos_x = detection.x + 200;
   int cpos_y = detection.y;
+  // TODO: make these modifiable
   unsigned char fcr = 0x00;
   unsigned char fcg = 0x54;
   unsigned char fcb = 0xff;
 
   for ( int n = 0; n < u8d.length(); n++ ){
-    FT_Bitmap bitmap;
+    // Get correspoindng glyph ID from Unicode index.
+    // Use vertical substitution if the glyph has.
     long int unicode_index = u8d.get(n);
+    long int glyph_index = FT_Get_Char_Index( face, unicode_index);
+    uint32_t substitute_glyph;
+    if( gsubt.GetVerticalGlyph( glyph_index, &substitute_glyph)) {
+      glyph_index = substitute_glyph;
+    }
 
-    FT_Load_Char( face, unicode_index, FT_LOAD_RENDER);
-    bitmap = slot->bitmap;
-
-    int offset_y = cpos_y + ((64 - slot->metrics.horiBearingY) / 64) + 32;
+    FT_Load_Glyph( face, glyph_index, FT_LOAD_RENDER | FT_LOAD_VERTICAL_LAYOUT);
+    FT_Bitmap bitmap = slot->bitmap;
+    int offset_x = cpos_x + slot->metrics.vertBearingX / 64;
+    int offset_y = cpos_y + slot->metrics.vertBearingY / 64;
     for( int i = 0; i < bitmap.rows * bitmap.width; i++){
 
-      int x = ( i % bitmap.width) + cpos_x;
+      int x = ( i % bitmap.width) + offset_x;
       int y = offset_y + ( i / bitmap.width);
       unsigned char* src_b = (unsigned char*)(dst->imageData + dst->widthStep * y + x * 3);
       unsigned char* src_g = (unsigned char*)(dst->imageData + dst->widthStep * y + x * 3 + 1);
@@ -88,18 +111,13 @@ bool Document::Say( char* s, int detection_id)
       tmp = fcb * gph_a + *src_b * src_a;
       *src_b = (tmp > 255) ? 255 : tmp;
     }
-    cpos_x += slot->metrics.horiAdvance / 64;
+    cpos_y += (slot->metrics.vertAdvance) / 64;
   }
   return true;
 }
 
 void Document::Everything()
 {
-  vector<Detection>::iterator it = detections.begin();
-  while( it != detections.end()) {
-    printf(" %3i, %3i: %20.20f\n", it->x, it->y, it->sim);
-    it++;
-  }
   cvSaveImage( "shineshok_result.png", this->said);
 }
 
