@@ -31,8 +31,7 @@ public:
 
   // To use FreeType
   FT_Library library;
-  FT_Face    face;
-  FT_GlyphSlot slot;
+  FT_Face face;
   FT_UInt glyph_index;
 
   Document( string, string);

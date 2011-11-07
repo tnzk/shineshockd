@@ -19,7 +19,6 @@ Document::Document( string src_name, string tmpl_name)
   FT_Error error;
   FT_Init_FreeType( &library );
   FT_New_Face( library, "F910ComicW4.otf", 0, &face );
-  slot = face->glyph;
   FT_Set_Char_Size( face, 0, 13 * 64, 300, 300);
   printf("Done.\n");
 
@@ -77,22 +76,25 @@ bool Document::Say( char* s, int detection_id)
   unsigned char fcg = 0x00;
   unsigned char fcb = 0x00;
 
+  cvRectangle( dst, cvPoint( detection.x, detection.y), cvPoint( detection.x + 200, detection.y + 200), CV_RGB( 0xff, 0xff, 0xff), CV_FILLED, 0, 0);
+
   for ( int n = 0; n < u8d.length(); n++ ){
     // Get correspoindng glyph ID from Unicode index.
     // Use vertical substitution if the glyph has.
+    // TODO: Use ICU to do this
     long int unicode_index = u8d.get(n);
     long int glyph_index = FT_Get_Char_Index( face, unicode_index);
     uint32_t substitute_glyph;
     if( gsubt.GetVerticalGlyph( glyph_index, &substitute_glyph)) {
       glyph_index = substitute_glyph;
     }
-
     FT_Load_Glyph( face, glyph_index, FT_LOAD_RENDER | FT_LOAD_VERTICAL_LAYOUT);
+    FT_GlyphSlot slot = face->glyph;
     FT_Bitmap bitmap = slot->bitmap;
     int offset_x = cpos_x + slot->metrics.vertBearingX / 64;
     int offset_y = cpos_y + slot->metrics.vertBearingY / 64;
-    for( int i = 0; i < bitmap.rows * bitmap.width; i++){
 
+    for( int i = 0; i < bitmap.rows * bitmap.width; i++){
       int x = ( i % bitmap.width) + offset_x;
       int y = offset_y + ( i / bitmap.width);
       unsigned char* src_b = (unsigned char*)(dst->imageData + dst->widthStep * y + x * 3);
