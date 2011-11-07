@@ -20,7 +20,7 @@ Document::Document( string src_name, string tmpl_name)
   FT_Init_FreeType( &library );
   FT_New_Face( library, "F910ComicW4.otf", 0, &face );
   slot = face->glyph;
-  FT_Set_Char_Size( face, 0, 5 * 64, 300, 300);
+  FT_Set_Char_Size( face, 0, 13 * 64, 300, 300);
   printf("Done.\n");
 
   // Pase GRUB table
@@ -39,7 +39,7 @@ bool Document::Load()
 
   // Load the source image and template
   // TODO: use any other file name
-  src  = cvLoadImage("image.bmp", CV_LOAD_IMAGE_COLOR);
+  src  = cvLoadImage("ex-t06.png", CV_LOAD_IMAGE_COLOR);
   tmpl = cvLoadImage("template.bmp", CV_LOAD_IMAGE_COLOR);
   if(src == 0 || tmpl == 0) return false;
 
@@ -74,8 +74,8 @@ bool Document::Say( char* s, int detection_id)
   int cpos_y = detection.y;
   // TODO: make these modifiable
   unsigned char fcr = 0x00;
-  unsigned char fcg = 0x54;
-  unsigned char fcb = 0xff;
+  unsigned char fcg = 0x00;
+  unsigned char fcb = 0x00;
 
   for ( int n = 0; n < u8d.length(); n++ ){
     // Get correspoindng glyph ID from Unicode index.
